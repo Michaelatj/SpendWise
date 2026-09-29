@@ -1,0 +1,13 @@
+{
+  "name": "spendwise-database-setup",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Minimal Node.js + MySQL database setup for SpendWise",
+  "main": "database/setup-db.js",
+  "scripts": {
+    "db:setup": "node database/setup-db.js"
+  },
+  "dependencies": {
+    "mysql2": "^3.14.4"
+  }
+}
