@@ -6,7 +6,7 @@
 
 Instead of simply recording transactions, SpendWise provides users with a centralized dashboard to monitor their expenses, manage spending categories, set monthly budgets, and understand their spending distribution.
 
-The application will be developed as a **containerized web application** using Docker and Docker Compose, with PostgreSQL as the database.
+The application will be developed as a **containerized web application** using Docker and Docker Compose, with **MySQL/MariaDB** as the database.
 
 ### Main Goal
 
@@ -42,6 +42,8 @@ Potential users include:
 * Individuals who want to monitor their monthly expenses.
 * People who want a simple alternative to manually tracking expenses through spreadsheets.
 
+The first version of SpendWise uses a **single-user model**, meaning the application focuses on managing one user's personal financial data without requiring an account or authentication system.
+
 ---
 
 # 4. Core Features
@@ -66,11 +68,11 @@ Users can view their recorded expenses in a structured table.
 
 ### Update
 
-Users can modify existing expense information.
+Users can modify existing expense information, such as correcting an incorrect amount, category, description, or payment method.
 
 ### Delete
 
-Users can delete an expense record.
+Users can delete an expense record when it was entered incorrectly or is no longer needed.
 
 ---
 
@@ -78,7 +80,7 @@ Users can delete an expense record.
 
 Users can organize their expenses into categories.
 
-Default categories may include:
+Example categories include:
 
 * Food
 * Transportation
@@ -89,7 +91,12 @@ Default categories may include:
 * Health
 * Other
 
-Users may also create, edit, and delete categories.
+Users can:
+
+* Create categories.
+* View categories.
+* Edit categories.
+* Delete categories.
 
 ---
 
@@ -110,7 +117,7 @@ Remaining
 Rp1.150.000
 ```
 
-The system calculates the amount spent and the remaining budget based on recorded expenses.
+The system calculates the amount spent and remaining budget based on recorded expenses.
 
 ---
 
@@ -120,12 +127,12 @@ The dashboard provides an overview of the user's financial activity.
 
 The dashboard will display:
 
-* Monthly budget
-* Total spending
-* Remaining budget
-* Number of transactions
-* Spending by category
-* Recent transactions
+* Monthly budget.
+* Total spending.
+* Remaining budget.
+* Number of transactions.
+* Spending by category.
+* Recent transactions.
 
 ---
 
@@ -149,7 +156,7 @@ These features will only be implemented if the core features are completed early
 
 ### Spending Alert
 
-The system may display an alert when the user's spending approaches or exceeds their monthly budget.
+The system may display an alert when spending approaches or exceeds the monthly budget.
 
 Example:
 
@@ -167,36 +174,38 @@ Example:
 Your highest spending category this month is Food.
 ```
 
-> These features are considered optional and will not block the completion of the core application.
+> These features are optional and will not block completion of the core application.
 
 ---
 
 # 6. Application Scope
 
-The first version of SpendWise will focus on **personal expense management**.
+The first version of SpendWise focuses on **single-user personal expense management**.
 
 ### Included
 
-* Expense CRUD
-* Category CRUD
-* Monthly budget
-* Dashboard
-* Spending visualization
-* PostgreSQL database
-* Docker containerization
-* Basic validation
-* Testing
+* Expense CRUD.
+* Category CRUD.
+* Monthly budget.
+* Dashboard.
+* Spending visualization.
+* MySQL/MariaDB database.
+* Docker containerization.
+* Basic validation.
+* Testing.
 
 ### Not included in the first version
 
-* Online banking integration
-* Payment gateway
-* Real financial transactions
-* Investment management
-* AI chatbot
-* Machine learning prediction
-* Mobile application
-* Advanced financial planning
+* User authentication.
+* Multiple user accounts.
+* Online banking integration.
+* Payment gateway.
+* Real financial transactions.
+* Investment management.
+* AI chatbot.
+* Machine learning prediction.
+* Mobile application.
+* Advanced financial planning.
 
 The scope is intentionally limited so the team can focus on delivering a stable and fully containerized application within the project deadline.
 
@@ -214,29 +223,19 @@ The application will use a simple client-server architecture.
              ▼                   ▼
         Frontend             Backend API
              │                   │
-             │              FastAPI
+             │                Node.js
              │                   │
              └────── HTTP ───────┘
                                  │
                                  ▼
-                            PostgreSQL
+                           MySQL/MariaDB
 ```
 
-The application will run inside Docker containers.
+The frontend communicates with the backend through HTTP requests.
 
-```text
-                  Docker Compose
-                       │
-          ┌────────────┴────────────┐
-          │                         │
-          ▼                         ▼
-   Application Container      PostgreSQL Container
-          │                         │
-          └───────── Network ───────┘
-                                    │
-                                    ▼
-                              Persistent Volume
-```
+The backend is responsible for processing requests and communicating with the database.
+
+The frontend does **not** connect directly to the database.
 
 ---
 
@@ -265,8 +264,8 @@ The frontend is responsible for:
 
 Planned technologies:
 
-* Python
-* FastAPI
+* Node.js
+* Express.js
 
 The backend is responsible for:
 
@@ -274,7 +273,7 @@ The backend is responsible for:
 * Business logic.
 * Input validation.
 * CRUD operations.
-* Communication with PostgreSQL.
+* Communication with MySQL/MariaDB.
 * Error handling.
 
 ---
@@ -283,14 +282,15 @@ The backend is responsible for:
 
 Planned technology:
 
-* PostgreSQL
+* MySQL/MariaDB
 
 The database is responsible for persistent storage of:
 
-* Users
-* Expenses
-* Categories
-* Budgets
+* Expenses.
+* Categories.
+* Monthly budgets.
+
+The application uses a single-user database design, so a separate users table is not required for the first version.
 
 ---
 
@@ -307,11 +307,15 @@ Docker Compose will manage the application and database services.
 
 ---
 
-## Version Control
+## Version Control & Project Management
+
+The project uses:
 
 * Git
 * GitHub
 * GitHub Projects
+* GitHub Issues
+* GitHub Pull Requests
 
 GitHub will be used for:
 
@@ -326,59 +330,100 @@ GitHub will be used for:
 
 # 9. Database Design
 
-The initial database will contain the following entities:
+The current database uses three main entities:
 
 ```text
-Users
- │
- ├───────────────┐
- │               │
- ▼               ▼
-Expenses       Budgets
- │
- ▼
 Categories
+    │
+    │ 1 : N
+    ▼
+Expenses
+
+
+Budgets
 ```
 
-### Users
+Because SpendWise is currently designed as a **single-user application**, there is no `Users` table or `user_id` relationship.
 
-| Field    | Description            |
-| -------- | ---------------------- |
-| id       | Unique user identifier |
-| name     | User name              |
-| email    | User email             |
-| password | User password          |
-
-### Categories
+## Categories
 
 | Field | Description                |
 | ----- | -------------------------- |
 | id    | Unique category identifier |
 | name  | Category name              |
 
-### Expenses
+Categories are used to organize expense records.
+
+One category can be associated with multiple expenses.
+
+---
+
+## Expenses
 
 | Field          | Description               |
 | -------------- | ------------------------- |
 | id             | Unique expense identifier |
-| user_id        | Owner of the expense      |
-| category_id    | Expense category          |
+| category_id    | Related category          |
 | description    | Expense description       |
 | amount         | Expense amount            |
-| payment_method | Payment method            |
-| expense_date   | Date of expense           |
+| payment_method | Payment method used       |
+| expense_date   | Date of the expense       |
 
-### Budgets
+Each expense belongs to a category.
 
-| Field   | Description              |
-| ------- | ------------------------ |
-| id      | Unique budget identifier |
-| user_id | Budget owner             |
-| month   | Budget month             |
-| year    | Budget year              |
-| amount  | Monthly budget amount    |
+---
 
-> The database schema may be adjusted during development if technical requirements change.
+## Budgets
+
+| Field  | Description              |
+| ------ | ------------------------ |
+| id     | Unique budget identifier |
+| month  | Budget month             |
+| year   | Budget year              |
+| amount | Monthly budget amount    |
+
+The budget table stores the spending limit for a particular month and year.
+
+---
+
+## Database Relationship
+
+```text
+┌──────────────┐
+│  Categories  │
+├──────────────┤
+│ id           │
+│ name         │
+└──────┬───────┘
+       │
+       │ 1 : N
+       │
+       ▼
+┌──────────────┐
+│   Expenses   │
+├──────────────┤
+│ id           │
+│ category_id  │
+│ description  │
+│ amount       │
+│ payment_method│
+│ expense_date │
+└──────────────┘
+
+
+┌──────────────┐
+│   Budgets    │
+├──────────────┤
+│ id           │
+│ month        │
+│ year         │
+│ amount       │
+└──────────────┘
+```
+
+The database schema is implemented using SQL and initialized through the Node.js database setup scripts.
+
+> The database structure may be adjusted during development if technical requirements change.
 
 ---
 
@@ -386,7 +431,7 @@ Categories
 
 The application must demonstrate complete CRUD functionality.
 
-### Expense
+## Expense
 
 ```text
 CREATE → Add expense
@@ -395,7 +440,7 @@ UPDATE → Edit expense
 DELETE → Delete expense
 ```
 
-### Category
+## Category
 
 ```text
 CREATE → Add category
@@ -404,7 +449,17 @@ UPDATE → Edit category
 DELETE → Delete category
 ```
 
-The CRUD operations must interact with the PostgreSQL database rather than temporary in-memory data.
+## Budget
+
+Budget management will support creating and updating the monthly budget.
+
+```text
+CREATE → Set monthly budget
+READ   → View monthly budget
+UPDATE → Change monthly budget
+```
+
+The CRUD operations must interact with the MySQL/MariaDB database rather than temporary in-memory data.
 
 ---
 
@@ -419,10 +474,10 @@ app
 └── SpendWise application
 
 db
-└── PostgreSQL database
+└── MySQL/MariaDB database
 ```
 
-Docker Compose will be used to run both services together.
+Docker Compose will be used to run the application and database together.
 
 Example:
 
@@ -433,15 +488,45 @@ docker compose up --build
 The project must support:
 
 * Application container.
-* PostgreSQL container.
+* MySQL/MariaDB container.
 * Docker network.
 * Environment variables.
 * Persistent database volume.
 * Reproducible application setup.
 
+The database must remain persistent when the containers are stopped and recreated.
+
 ---
 
-# 12. Testing Plan
+# 12. Environment Configuration
+
+Environment-specific configuration should not be stored directly in the source code.
+
+A local `.env` file will be used during development.
+
+Example:
+
+```env
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=spendwise
+```
+
+The actual `.env` file must **not** be committed to GitHub.
+
+Instead, the project provides:
+
+```text
+.env.example
+```
+
+as a template for team members.
+
+---
+
+# 13. Testing Plan
 
 Testing will be performed throughout development rather than only at the end.
 
@@ -457,11 +542,21 @@ Examples:
 * Delete expense.
 * Create category.
 * Update category.
+* Delete category.
 * Set budget.
+* Update budget.
 
 ## API Testing
 
 Verify backend endpoints and responses.
+
+Examples:
+
+* Request status codes.
+* Response data.
+* Invalid input handling.
+* Missing data handling.
+* CRUD operations.
 
 ## Database Testing
 
@@ -469,9 +564,10 @@ Verify that:
 
 * Data is correctly inserted.
 * Data can be retrieved.
-* Relationships work correctly.
+* Category relationships work correctly.
 * Updates are persisted.
 * Deleted records are removed correctly.
+* Budget data is stored correctly.
 
 ## Integration Testing
 
@@ -482,7 +578,7 @@ Frontend
    ↓
 Backend API
    ↓
-PostgreSQL
+MySQL/MariaDB
 ```
 
 works correctly as one system.
@@ -499,11 +595,11 @@ and that the application continues to work after container recreation.
 
 ## Persistence Testing
 
-Verify that PostgreSQL data remains available after containers are stopped and recreated.
+Verify that database data remains available after containers are stopped and recreated.
 
 ---
 
-# 13. Team Responsibilities
+# 14. Team Responsibilities
 
 Responsibilities are initially divided as follows and may be adjusted during development.
 
@@ -519,13 +615,13 @@ Responsibilities:
 
 * Database design.
 * ERD.
-* PostgreSQL setup.
-* Database schema.
-* Migration.
-* Seed data.
-* Dockerfile.
+* SQL schema.
+* MySQL/MariaDB setup.
+* Database connection setup.
+* Database testing.
+* Docker configuration.
 * Docker Compose.
-* PostgreSQL container.
+* Database container.
 * Network configuration.
 * Persistent volume.
 * Container testing support.
@@ -547,7 +643,7 @@ Responsibilities:
 
 Responsibilities:
 
-* FastAPI setup.
+* Node.js/Express setup.
 * API development.
 * CRUD endpoints.
 * Business logic.
@@ -561,29 +657,36 @@ Responsibilities:
 
 ---
 
-# 14. Development Workflow
+# 15. Development Workflow
 
 The project will use GitHub for collaborative development.
 
-### Branching
+## Branching Strategy
 
-Each feature should be developed using a separate branch.
+`main` is the stable branch.
+
+Feature branches are created for specific tasks.
 
 Example:
 
 ```text
 main
 │
-├── feature/database
+├── feature/database-schema
 ├── feature/docker
 ├── feature/frontend
-└── feature/backend
+├── feature/expense-api
+└── feature/dashboard
 ```
+
+Branches should represent **work or features**, not individual team members.
 
 ### Pull Request Workflow
 
 ```text
-Create branch
+Create Issue
+      ↓
+Create feature branch
       ↓
 Implement feature
       ↓
@@ -593,7 +696,7 @@ Push branch
       ↓
 Create Pull Request
       ↓
-Code Review
+Code Review / Testing
       ↓
 Merge into main
 ```
@@ -602,11 +705,11 @@ The `main` branch should contain stable code.
 
 ---
 
-# 15. Project Management Workflow
+# 16. Project Management Workflow
 
 GitHub Projects will be used to track development progress.
 
-### Status
+## Status
 
 ```text
 Backlog
@@ -620,7 +723,7 @@ Review
 Done
 ```
 
-### Priority
+## Priority
 
 ```text
 Urgent
@@ -629,7 +732,7 @@ Medium
 Low
 ```
 
-### Main Work Areas
+## Main Work Areas
 
 ```text
 Frontend
@@ -640,18 +743,18 @@ Testing
 Documentation
 ```
 
-Each task should have:
+Each task should contain:
 
-* Assignee
-* Priority
-* Status
-* Milestone
-* Description
-* Acceptance criteria
+* Assignee.
+* Priority.
+* Status.
+* Milestone.
+* Description.
+* Acceptance criteria.
 
 ---
 
-# 16. Development Roadmap
+# 17. Development Roadmap
 
 ## Phase 1 — Planning & Foundation
 
@@ -662,7 +765,8 @@ Each task should have:
 * Design system architecture.
 * Design database ERD.
 * Design UI wireframe.
-* Initialize repositories and development environment.
+* Initialize repository and development environment.
+* Set up database schema.
 
 ---
 
@@ -677,6 +781,7 @@ Each task should have:
 * Implement Category CRUD.
 * Implement Budget functionality.
 * Implement dashboard.
+* Implement spending visualization.
 
 ---
 
@@ -687,7 +792,7 @@ Each task should have:
 * Integrate frontend and backend.
 * Configure Docker.
 * Configure Docker Compose.
-* Configure PostgreSQL container.
+* Configure MySQL/MariaDB container.
 * Configure network.
 * Configure persistent volume.
 * Test complete application inside containers.
@@ -701,6 +806,7 @@ Each task should have:
 * Functional testing.
 * CRUD testing.
 * Database testing.
+* API testing.
 * Integration testing.
 * Container testing.
 * Bug fixing.
@@ -721,7 +827,7 @@ Final submission before:
 
 ---
 
-# 17. Definition of Done
+# 18. Definition of Done
 
 A feature is considered **Done** only when:
 
@@ -737,22 +843,60 @@ A feature is considered **Done** only when:
 
 ---
 
-# 18. Project Deliverables
+# 19. Project Deliverables
 
 The final project will contain:
 
 1. Working web application.
 2. GitHub repository.
 3. Docker configuration.
-4. PostgreSQL database.
+4. MySQL/MariaDB database.
 5. GitHub Project development board.
 6. README documentation.
 7. PDF project report.
-8. Video documentation of the container implementation.
+8. Video documentation of the complete container implementation.
 
 ---
 
-# 19. Success Criteria
+# 20. Development Tools
+
+The following tools are used or planned for the development of SpendWise.
+
+## Development
+
+* Visual Studio Code.
+* Node.js.
+* npm.
+* HTML/CSS/JavaScript.
+* Express.js.
+* MySQL/MariaDB.
+* MySQL Workbench.
+* XAMPP/phpMyAdmin for local database administration when applicable.
+
+## Version Control & Collaboration
+
+* Git.
+* GitHub.
+* GitHub Projects.
+* GitHub Issues.
+* GitHub Pull Requests.
+
+## API & Testing
+
+* Postman or another API testing tool.
+* Browser developer tools.
+
+## Design & Documentation
+
+* draw.io / diagrams.net for ERD and system diagrams.
+* Microsoft Word or Google Docs for the project report.
+* Screen recording software for the required project video.
+
+> Tools may be adjusted during development if the team identifies a more suitable alternative.
+
+---
+
+# 21. Success Criteria
 
 The project will be considered successfully completed when:
 
@@ -760,8 +904,8 @@ The project will be considered successfully completed when:
 * [ ] Expense CRUD works correctly.
 * [ ] Category CRUD works correctly.
 * [ ] Budget management works.
-* [ ] Data is stored in PostgreSQL.
-* [ ] Frontend communicates with backend.
+* [ ] Data is stored in MySQL/MariaDB.
+* [ ] Frontend communicates with the backend.
 * [ ] Application can run using Docker Compose.
 * [ ] Database uses persistent storage.
 * [ ] Application passes functional and integration testing.
