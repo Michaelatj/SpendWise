@@ -1,11 +1,14 @@
 {
-  "name": "spendwise-database-setup",
+  "name": "spendwise",
   "version": "1.0.0",
   "private": true,
-  "description": "Minimal Node.js + MySQL database setup for SpendWise",
-  "main": "database/setup-db.js",
+  "description": "SpendWise - Expense & Budget Tracker",
+  "main": "backend/src/server.js",
   "scripts": {
-    "db:setup": "node database/setup-db.js"
+    "start": "npm --prefix backend start",
+    "dev": "npm --prefix backend run dev",
+    "db:setup": "npm --prefix backend run db:setup",
+    "db:seed": "npm --prefix backend run db:seed"
   },
   "dependencies": {
     "mysql2": "^3.14.4"

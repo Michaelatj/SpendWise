@@ -47,7 +47,7 @@ Ensure your MySQL server is running, then run:
 # Create database and tables (categories, expenses, budgets)
 npm run db:setup
 
-# Seed default categories (Food, Transportation, Bills, etc.)
+# Seed default categories, initial monthly budget, and sample expense records
 npm run db:seed
 ```
 
