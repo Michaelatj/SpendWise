@@ -1,7 +1,7 @@
 // src/App.jsx
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./components/layout";
-import Dashboard from "./pages/dashboard";
+import Dashboard from "./pages/Dashboard";
 
 // Buat komponen placeholder sementara untuk halaman lain
 const Expenses = () => <div>Halaman Expense Management</div>;

@@ -5,18 +5,18 @@ import { motion } from "framer-motion";
 
 const Dashboard = () => {
   const [summary, setSummary] = useState({
-    totalExpense: 0,
-    totalBudget: 0,
-    remainingBudget: 0,
+    total_spent: 0,
+    monthly_budget: 0,
+    remaining_budget: 0,
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        // Asumsi backend mengembalikan data di res.data
         const res = await apiClient.get("/dashboard");
-        setSummary(res.data);
+        const data = res.data?.data || res.data || {};
+        setSummary(data);
       } catch (error) {
         console.error("Gagal mengambil data dashboard:", error);
       } finally {
@@ -31,17 +31,17 @@ const Dashboard = () => {
   const cards = [
     {
       title: "Total Pengeluaran",
-      amount: summary.totalExpense,
+      amount: summary.total_spent ?? summary.totalExpense ?? 0,
       color: "text-red-500",
     },
     {
       title: "Total Anggaran",
-      amount: summary.totalBudget,
+      amount: summary.monthly_budget ?? summary.totalBudget ?? 0,
       color: "text-blue-500",
     },
     {
       title: "Sisa Anggaran",
-      amount: summary.remainingBudget,
+      amount: summary.remaining_budget ?? summary.remainingBudget ?? 0,
       color: "text-green-500",
     },
   ];
@@ -59,7 +59,7 @@ const Dashboard = () => {
           >
             <h3 className="text-gray-500 text-sm font-medium">{card.title}</h3>
             <p className={`text-3xl font-bold mt-2 ${card.color}`}>
-              Rp {card.amount.toLocaleString("id-ID")}
+              Rp {(card.amount ?? 0).toLocaleString("id-ID")}
             </p>
           </motion.div>
         ))}
@@ -74,3 +74,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
