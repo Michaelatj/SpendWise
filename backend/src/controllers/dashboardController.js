@@ -75,6 +75,10 @@ async function getDashboardSummary(req, res, next) {
     res.json({
       success: true,
       data: {
+        total_expense: totalSpent,
+        total_budget: monthlyBudget,
+        all_time_remaining_budget: remainingBudget,
+        recent_transactions: recentTransactions,
         month,
         year,
         monthly_budget: monthlyBudget,
@@ -83,7 +87,6 @@ async function getDashboardSummary(req, res, next) {
         transaction_count: transactionCount,
         percentage_used: percentageUsed,
         category_spending: categorySpending,
-        recent_transactions: recentTransactions,
       },
     });
   } catch (error) {
