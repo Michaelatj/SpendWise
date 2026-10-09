@@ -7,12 +7,11 @@ async function getDashboardSummary(req, res, next) {
     const month = Number(req.query.month || now.getMonth() + 1);
     const year = Number(req.query.year || now.getFullYear());
 
-    // 1. Get Monthly Budget
-    const [budgetRows] = await pool.query(
-      'SELECT amount FROM budgets WHERE month = ? AND year = ?',
-      [month, year]
+    // 1. Get Total Monthly Budget (sum of all category budgets)
+    const [[budgetRow]] = await pool.query(
+      'SELECT COALESCE(SUM(amount), 0) AS total_budget FROM budgets'
     );
-    const monthlyBudget = budgetRows.length > 0 ? Number(budgetRows[0].amount) : 0;
+    const monthlyBudget = Number(budgetRow.total_budget);
 
     // 2. Get Total Spent & Transaction Count for the month
     const [[spendingSummary]] = await pool.query(

@@ -32,30 +32,31 @@ async function seedDatabase() {
     }
     console.log('   ✅ Categories seeded successfully!');
 
-    // 2. Seed Monthly Budgets
-    console.log('[SpendWise DB Seed] Seeding initial budget records...');
-    const now = new Date();
-    const currentMonth = now.getMonth() + 1;
-    const currentYear = now.getFullYear();
+    // 2. Seed Category Budgets
+    console.log('[SpendWise DB Seed] Seeding initial category budget records...');
+    const foodId = categoryMap['Food'];
+    const transportId = categoryMap['Transportation'];
+    const billsId = categoryMap['Bills'];
 
-    // Budget for current month
-    await pool.query(
-      `INSERT INTO budgets (month, year, amount) 
-       VALUES (?, ?, 3000000.00) 
-       ON DUPLICATE KEY UPDATE amount = VALUES(amount)`,
-      [currentMonth, currentYear]
-    );
-
-    // Budget for next month
-    const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
-    const nextMonthYear = currentMonth === 12 ? currentYear + 1 : currentYear;
-    await pool.query(
-      `INSERT INTO budgets (month, year, amount) 
-       VALUES (?, ?, 3500000.00) 
-       ON DUPLICATE KEY UPDATE amount = VALUES(amount)`,
-      [nextMonth, nextMonthYear]
-    );
-    console.log('   ✅ Monthly budgets seeded successfully!');
+    if (foodId) {
+      await pool.query(
+        `INSERT INTO budgets (category_id, amount) VALUES (?, 1000000.00) ON DUPLICATE KEY UPDATE amount = VALUES(amount)`,
+        [foodId]
+      );
+    }
+    if (transportId) {
+      await pool.query(
+        `INSERT INTO budgets (category_id, amount) VALUES (?, 500000.00) ON DUPLICATE KEY UPDATE amount = VALUES(amount)`,
+        [transportId]
+      );
+    }
+    if (billsId) {
+      await pool.query(
+        `INSERT INTO budgets (category_id, amount) VALUES (?, 1500000.00) ON DUPLICATE KEY UPDATE amount = VALUES(amount)`,
+        [billsId]
+      );
+    }
+    console.log('   ✅ Category budgets seeded successfully!');
 
     // 3. Seed Sample Expenses
     console.log('[SpendWise DB Seed] Seeding sample expense entries...');
