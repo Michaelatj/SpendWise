@@ -1,81 +1,70 @@
 const pool = require('../config/db');
 
-// Get monthly budget for specified month/year (or current month if omitted)
-async function getBudget(req, res, next) {
+// Get all category budgets with spent calculation for current month
+async function getBudgets(req, res, next) {
   try {
     const now = new Date();
-    const month = Number(req.query.month || now.getMonth() + 1);
-    const year = Number(req.query.year || now.getFullYear());
+    const currentMonth = Number(req.query.month || now.getMonth() + 1);
+    const currentYear = Number(req.query.year || now.getFullYear());
 
-    if (month < 1 || month > 12) {
-      return res.status(400).json({ success: false, error: { message: 'Month must be between 1 and 12' } });
-    }
-
-    const [budgetRows] = await pool.query(
-      'SELECT id, month, year, amount FROM budgets WHERE month = ? AND year = ?',
-      [month, year]
+    const [rows] = await pool.query(
+      `SELECT 
+        b.id,
+        b.category_id,
+        c.name AS category_name,
+        b.amount,
+        COALESCE(SUM(e.amount), 0) AS total_spent,
+        (b.amount - COALESCE(SUM(e.amount), 0)) AS remaining
+       FROM budgets b
+       JOIN categories c ON b.category_id = c.id
+       LEFT JOIN expenses e ON e.category_id = b.category_id 
+         AND MONTH(e.expense_date) = ? 
+         AND YEAR(e.expense_date) = ?
+       GROUP BY b.id, b.category_id, c.name, b.amount
+       ORDER BY c.name ASC`,
+      [currentMonth, currentYear]
     );
-
-    // Calculate spent for this month
-    const [[spentRow]] = await pool.query(
-      `SELECT COALESCE(SUM(amount), 0) AS total_spent 
-       FROM expenses 
-       WHERE MONTH(expense_date) = ? AND YEAR(expense_date) = ?`,
-      [month, year]
-    );
-
-    const budgetAmount = budgetRows.length > 0 ? Number(budgetRows[0].amount) : 0;
-    const totalSpent = Number(spentRow.total_spent);
-    const remaining = budgetAmount - totalSpent;
 
     res.json({
       success: true,
-      data: {
-        budget: budgetRows.length > 0 ? budgetRows[0] : null,
-        month,
-        year,
-        amount: budgetAmount,
-        total_spent: totalSpent,
-        remaining,
-        percentage_used: budgetAmount > 0 ? Math.min(100, Math.round((totalSpent / budgetAmount) * 100)) : 0,
-      },
+      data: rows,
     });
   } catch (error) {
     next(error);
   }
 }
 
-// Set or update (upsert) monthly budget
+// Create or update (upsert) budget for a category
 async function setBudget(req, res, next) {
   try {
-    const { month, year, amount } = req.body;
+    const { category_id, amount } = req.body;
 
-    if (!month || Number(month) < 1 || Number(month) > 12) {
-      return res.status(400).json({ success: false, error: { message: 'Month must be between 1 and 12' } });
-    }
-    if (!year || Number(year) < 2000) {
-      return res.status(400).json({ success: false, error: { message: 'Valid year is required' } });
+    if (!category_id) {
+      return res.status(400).json({ success: false, error: { message: 'Category ID is required' } });
     }
     if (amount === undefined || amount === null || Number(amount) <= 0) {
       return res.status(400).json({ success: false, error: { message: 'Amount must be a positive number' } });
     }
 
     await pool.query(
-      `INSERT INTO budgets (month, year, amount)
-       VALUES (?, ?, ?)
+      `INSERT INTO budgets (category_id, amount)
+       VALUES (?, ?)
        ON DUPLICATE KEY UPDATE amount = VALUES(amount)`,
-      [Number(month), Number(year), Number(amount)]
+      [Number(category_id), Number(amount)]
     );
 
-    const [budgetRows] = await pool.query(
-      'SELECT id, month, year, amount FROM budgets WHERE month = ? AND year = ?',
-      [Number(month), Number(year)]
+    const [rows] = await pool.query(
+      `SELECT b.id, b.category_id, c.name AS category_name, b.amount
+       FROM budgets b
+       JOIN categories c ON b.category_id = c.id
+       WHERE b.category_id = ?`,
+      [Number(category_id)]
     );
 
     res.status(200).json({
       success: true,
-      message: 'Monthly budget saved successfully',
-      data: budgetRows[0],
+      message: 'Category budget saved successfully',
+      data: rows[0],
     });
   } catch (error) {
     next(error);
@@ -86,7 +75,7 @@ async function setBudget(req, res, next) {
 async function updateBudgetById(req, res, next) {
   try {
     const { id } = req.params;
-    const { amount } = req.body;
+    const { category_id, amount } = req.body;
 
     if (amount === undefined || amount === null || Number(amount) <= 0) {
       return res.status(400).json({ success: false, error: { message: 'Amount must be a positive number' } });
@@ -97,9 +86,23 @@ async function updateBudgetById(req, res, next) {
       return res.status(404).json({ success: false, error: { message: 'Budget not found' } });
     }
 
-    await pool.query('UPDATE budgets SET amount = ? WHERE id = ?', [Number(amount), id]);
+    if (category_id) {
+      await pool.query('UPDATE budgets SET category_id = ?, amount = ? WHERE id = ?', [
+        Number(category_id),
+        Number(amount),
+        id,
+      ]);
+    } else {
+      await pool.query('UPDATE budgets SET amount = ? WHERE id = ?', [Number(amount), id]);
+    }
 
-    const [updated] = await pool.query('SELECT id, month, year, amount FROM budgets WHERE id = ?', [id]);
+    const [updated] = await pool.query(
+      `SELECT b.id, b.category_id, c.name AS category_name, b.amount
+       FROM budgets b
+       JOIN categories c ON b.category_id = c.id
+       WHERE b.id = ?`,
+      [id]
+    );
 
     res.json({
       success: true,
@@ -111,8 +114,30 @@ async function updateBudgetById(req, res, next) {
   }
 }
 
+// Delete budget by ID
+async function deleteBudgetById(req, res, next) {
+  try {
+    const { id } = req.params;
+
+    const [existing] = await pool.query('SELECT id FROM budgets WHERE id = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({ success: false, error: { message: 'Budget not found' } });
+    }
+
+    await pool.query('DELETE FROM budgets WHERE id = ?', [id]);
+
+    res.json({
+      success: true,
+      message: 'Budget deleted successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
-  getBudget,
+  getBudgets,
   setBudget,
   updateBudgetById,
+  deleteBudgetById,
 };

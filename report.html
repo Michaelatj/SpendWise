@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Tugas Kelompok-1 [MID] - SpendWise</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm 15mm 20mm 15mm;
+            @bottom-right {
+                content: counter(page);
+            }
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #1e293b;
+            line-height: 1.6;
+            margin: 0;
+            padding: 24px;
+            background-color: #ffffff;
+        }
+
+        /* Header / Cover Styling */
+        .header-container {
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+
+        .university-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 4px;
+        }
+
+        .doc-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0 0 8px 0;
+        }
+
+        .doc-subtitle {
+            font-size: 15px;
+            font-weight: 600;
+            color: #2563eb;
+            margin: 0;
+        }
+
+        /* Group Info Card */
+        .info-card {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #2563eb;
+            border-radius: 6px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+        }
+
+        .info-card table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .info-card td {
+            padding: 6px 10px;
+            font-size: 14px;
+            vertical-align: top;
+        }
+
+        .info-card td.label {
+            font-weight: 600;
+            color: #475569;
+            width: 180px;
+        }
+
+        /* Section Styling */
+        h2 {
+            font-size: 18px;
+            color: #0f172a;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 6px;
+            margin-top: 28px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        h3 {
+            font-size: 15px;
+            color: #1e40af;
+            margin-top: 18px;
+            margin-bottom: 8px;
+        }
+
+        p {
+            font-size: 13.5px;
+            margin: 0 0 10px 0;
+            color: #334155;
+            text-align: justify;
+        }
+
+        ul, ol {
+            font-size: 13.5px;
+            margin: 0 0 12px 0;
+            padding-left: 22px;
+            color: #334155;
+        }
+
+        li {
+            margin-bottom: 4px;
+        }
+
+        /* Table Styling */
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 14px 0;
+            font-size: 13px;
+        }
+
+        table.data-table th {
+            background-color: #1e293b;
+            color: #ffffff;
+            font-weight: 600;
+            text-align: left;
+            padding: 8px 12px;
+            border: 1px solid #334155;
+        }
+
+        table.data-table td {
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            color: #334155;
+        }
+
+        table.data-table tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        /* Code Block Styling */
+        pre {
+            background-color: #0f172a;
+            color: #f8fafc;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            margin: 12px 0;
+            line-height: 1.4;
+        }
+
+        code {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background-color: #f1f5f9;
+            color: #0f172a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* Badge & Highlight */
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .badge-blue { background-color: #dbeafe; color: #1e40af; }
+        .badge-green { background-color: #dcfce7; color: #166534; }
+        .badge-purple { background-color: #f3e8ff; color: #6b21a8; }
+
+        /* Box Callouts */
+        .callout-box {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 12px 16px;
+            margin: 14px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .callout-box p {
+            margin: 0;
+            color: #1e3a8a;
+            font-size: 13px;
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Section -->
+    <div class="header-container">
+        <div class="university-title">Tugas Kelompok-1 [MID] — Pengembangan Aplikasi Berbasis Container</div>
+        <h1 class="doc-title">LAPORAN IMPLEMENTASI DOCKER CONTAINER</h1>
+        <div class="doc-subtitle">Aplikasi Web: SpendWise — Expense & Budget Tracker</div>
+    </div>
+
+    <!-- Informasi Kelompok & Aplikasi -->
+    <div class="info-card">
+        <table>
+            <tr>
+                <td class="label">Nama Aplikasi:</td>
+                <td><strong>SpendWise — Expense & Budget Tracker</strong></td>
+            </tr>
+            <tr>
+                <td class="label">Teknologi Container:</td>
+                <td><span class="badge badge-blue">Docker</span> <span class="badge badge-purple">Docker Compose</span> <span class="badge badge-green">Multi-Container</span></td>
+            </tr>
+            <tr>
+                <td class="label">Anggota Kelompok (3 Orang):</td>
+                <td>
+                    1. <strong>[Nama Anggota 1 - Ketua]</strong> (NIM: 230101001)<br>
+                    2. <strong>[Nama Anggota 2]</strong> (NIM: 230101002)<br>
+                    3. <strong>[Nama Anggota 3]</strong> (NIM: 230101003)
+                </td>
+            </tr>
+            <tr>
+                <td class="label">Link Repositori GitHub:</td>
+                <td><a href="https://github.com/Michaelatj/SpendWise" style="color: #2563eb; text-decoration: none;">https://github.com/Michaelatj/SpendWise</a></td>
+            </tr>
+            <tr>
+                <td class="label">Link Video Dokumentasi:</td>
+                <td><a href="https://youtube.com/watch?v=placeholder" style="color: #2563eb; text-decoration: none;">https://youtube.com/watch?v=placeholder</a> <em>(Silakan ganti dengan URL video Anda)</em></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- 1. Deskripsi Aplikasi & Tata Cara Penggunaan -->
+    <h2>1. Deskripsi Aplikasi & Tata Cara Penggunaan</h2>
+    <p>
+        <strong>SpendWise</strong> adalah aplikasi manajemen pengeluaran dan anggaran keuangan pribadi berbasis web yang dikembangkan khusus untuk berjalan di dalam ekosistem container (Docker/Podman). Aplikasi ini membantu pengguna dalam mencatat, mengelompokkan, memantau batas anggaran bulanan, serta menganalisis distribusi pengeluaran harian secara rinci dan visual.
+    </p>
+
+    <h3>Fitur Utama Aplikasi (CRUD & Analytics):</h3>
+    <ul>
+        <li><strong>Manajemen Pengeluaran (Expense CRUD):</strong> Pengguna dapat menambah pengeluaran baru (Create), melihat tabel riwayat transaksi (Read), memperbarui data pengeluaran (Update), dan menghapus transaksi (Delete).</li>
+        <li><strong>Manajemen Kategori (Category CRUD):</strong> Mengelompokkan transaksi ke dalam kategori seperti Makanan, Transportasi, Tagihan, Hiburan, dll. Pengguna dapat menambah, mengedit, dan menghapus kategori secara dinamis.</li>
+        <li><strong>Alokasi Anggaran Bulanan (Monthly Budget):</strong> Menetapkan target limit anggaran bulanan dan menghitung sisa anggaran otomatis secara real-time.</li>
+        <li><strong>Dashboard Visualisasi:</strong> Menampilkan ringkasan total pengeluaran, indikator sisa anggaran, peringatan penggunaan anggaran, dan chart distribusi pengeluaran.</li>
+    </ul>
+
+    <h3>Tata Cara Penggunaan Aplikasi:</h3>
+    <ol>
+        <li><strong>Buka Browser:</strong> Akses <code>http://localhost</code> pada browser setelah container berjalan.</li>
+        <li><strong>Navigasi Dashboard:</strong> Lihat ringkasan total pengeluaran, sisa anggaran, dan indikator persentase penggunaan anggaran bulanan.</li>
+        <li><strong>Menambah Kategori Baru:</strong> Buka menu <em>Categories</em> &rarr; Klik <em>Add Category</em> &rarr; Masukkan nama kategori &rarr; Simpan.</li>
+        <li><strong>Menambah Transaksi Pengeluaran:</strong> Buka menu <em>Expenses</em> &rarr; Klik <em>Add Expense</em> &rarr; Isi deskripsi, nominal (Rp), kategori, tanggal, dan metode pembayaran &rarr; Simpan.</li>
+        <li><strong>Mengedit & Menghapus Data:</strong> Pada tabel transaksi, gunakan tombol <em>Edit</em> untuk mengubah data atau <em>Delete</em> untuk menghapus catatan.</li>
+        <li><strong>Mengatur Anggaran Bulanan:</strong> Buka menu <em>Budget</em> &rarr; Masukkan batas nominal anggaran untuk bulan berjalan &rarr; Simpan.</li>
+    </ol>
+
+    <!-- 2. Detail Arsitektur Aplikasi & Sumber Referensi -->
+    <h2>2. Detail Arsitektur Aplikasi & Sumber Referensi</h2>
+    <p>
+        Aplikasi SpendWise mengadopsi arsitektur <strong>Multi-Tier Containerized Micro-services</strong> yang terdiri dari 3 layanan terpisah yang saling terhubung melalui Docker Network internal:
+    </p>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Layanan (Service)</th>
+                <th>Teknologi / Base Image</th>
+                <th>Fungsi Utama</th>
+                <th>Port Container</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Frontend</strong></td>
+                <td>React.js (Vite) + Nginx Alpine</td>
+                <td>Antarmuka pengguna (SPA UI), routing visual, & Nginx Reverse Proxy ke Backend API.</td>
+                <td>Port 80</td>
+            </tr>
+            <tr>
+                <td><strong>Backend</strong></td>
+                <td>Node.js (Express.js) + Alpine</td>
+                <td>Rest API server, logika bisnis CRUD, validasi data, & komunikasi ke MySQL Database.</td>
+                <td>Port 5000</td>
+            </tr>
+            <tr>
+                <td><strong>Database</strong></td>
+                <td>MySQL 8.0 Official Image</td>
+                <td>Penyimpanan data relasional secara persisten (Expenses, Categories, Budgets).</td>
+                <td>Port 3306</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Sumber Referensi Kode / Referensi Aplikasi:</h3>
+    <ul>
+        <li><strong>Backend API Framework:</strong> Express.js Documentation (<a href="https://expressjs.com/">https://expressjs.com/</a>)</li>
+        <li><strong>Database Driver:</strong> MySQL2 Promise API (<a href="https://github.com/sidorares/node-mysql2">node-mysql2</a>)</li>
+        <li><strong>Frontend Framework & Build Tool:</strong> React 18 & Vite (<a href="https://vitejs.dev/">https://vitejs.dev/</a>)</li>
+        <li><strong>UI Styling & Icons:</strong> Tailwind CSS & Lucide React (<a href="https://lucide.dev/">lucide.dev</a>)</li>
+        <li><strong>Containerization Engine:</strong> Docker & Docker Compose Official Documentation (<a href="https://docs.docker.com/">docs.docker.com</a>)</li>
+    </ul>
+
+    <div class="page-break"></div>
+
+    <!-- 3. Informasi File Pendukung & Konfigurasi Container -->
+    <h2>3. Informasi File Pendukung & Konfigurasi Container</h2>
+    <p>
+        Untuk memenuhi kriteria penilaian penggunaan container (40 poin), berikut adalah file-file konfigurasi container yang digunakan dalam proyek ini:
+    </p>
+
+    <h3>A. File Dockerfile Backend (<code>backend/Dockerfile</code>)</h3>
+    <pre><code># Base image Node.js Alpine
+FROM node:20-alpine
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Copy source code & Set Port
+COPY . .
+EXPOSE 5000
+
+ENV NODE_ENV=production PORT=5000
+CMD ["npm", "start"]</code></pre>
+
+    <h3>B. File Dockerfile Frontend Multi-Stage (<code>frontend/Dockerfile</code>)</h3>
+    <pre><code># Stage 1: Build React SPA
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+# Stage 2: Serve Nginx Web Server
+FROM nginx:alpine
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]</code></pre>
+
+    <h3>C. Konfigurasi Orchestration (<code>docker-compose.yml</code>)</h3>
+    <pre><code>services:
+  database:
+    image: mysql:8.0
+    container_name: spendwise-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: spendwise
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    container_name: spendwise-backend
+    ports:
+      - "5000:5000"
+    environment:
+      DB_HOST: database
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: rootpassword
+      DB_NAME: spendwise
+    depends_on:
+      database:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: spendwise-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:</code></pre>
+
+    <!-- 4. Link Video Dokumentasi -->
+    <h2>4. Link Video Dokumentasi Implementasi Container</h2>
+    <div class="callout-box">
+        <p>
+            <strong>Video Dokumentasi Lengkap:</strong><br>
+            Video dokumentasi mencakup proses build container image, pengujian container secara lokal, demonstrasi fitur CRUD pada web application, dan verifikasi persistensi data pada MySQL database.<br>
+            <strong>Link Video:</strong> <a href="https://youtube.com/watch?v=placeholder" style="color: #1e40af; font-weight: bold;">https://youtube.com/watch?v=placeholder</a>
+        </p>
+    </div>
+
+    <!-- 5. Tata Cara Eksekusi Container (Deployment Guide) -->
+    <h2>5. Tata Cara Eksekusi Container (Deployment Guide)</h2>
+    <ol>
+        <li><strong>Clone Repositori:</strong> <code>git clone https://github.com/Michaelatj/SpendWise.git</code></li>
+        <li><strong>Masuk ke Direktori Proyek:</strong> <code>cd SpendWise</code></li>
+        <li><strong>Build & Jalankan Container:</strong> <code>docker compose up -d --build</code></li>
+        <li><strong>Cek Status Container:</strong> <code>docker compose ps</code></li>
+        <li><strong>Akses Aplikasi Web:</strong> Buka <code>http://localhost</code> di web browser.</li>
+        <li><strong>Menghentikan Container:</strong> <code>docker compose down</code></li>
+    </ol>
+
+    <div style="margin-top: 40px; text-align: center; border-top: 1px solid #cbd5e1; padding-top: 16px; font-size: 12px; color: #64748b;">
+        Diproses & Disusun oleh Kelompok 1 — Tugas Kelompok-1 [MID] Pengembangan Aplikasi Berbasis Container
+    </div>
+
+</body>
+</html>
