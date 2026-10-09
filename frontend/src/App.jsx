@@ -2,11 +2,9 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./components/layout";
 import Dashboard from "./pages/Dashboard";
-
-// Buat komponen placeholder sementara untuk halaman lain
-const Expenses = () => <div>Halaman Expense Management</div>;
-const Categories = () => <div>Halaman Category Management</div>;
-const Budgets = () => <div>Halaman Budget Management</div>;
+import Expenses from "./pages/Expenses";
+import Categories from "./pages/Categories";
+import Budgets from "./pages/Budgets";
 
 function App() {
   return (
