@@ -8,9 +8,13 @@
     "start": "npm --prefix backend start",
     "dev": "npm --prefix backend run dev",
     "db:setup": "npm --prefix backend run db:setup",
-    "db:seed": "npm --prefix backend run db:seed"
+    "db:seed": "npm --prefix backend run db:seed",
+    "report:pdf": "node scripts/update-report-pdf.js"
   },
   "dependencies": {
     "mysql2": "^3.14.4"
+  },
+  "devDependencies": {
+    "pdf-lib": "^1.17.1"
   }
 }
