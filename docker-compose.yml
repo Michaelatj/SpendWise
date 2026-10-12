@@ -1,7 +1,5 @@
 services:
-  # -------------------------------------------------------------------
   # Database Service: MySQL 8.0 Container
-  # -------------------------------------------------------------------
   database:
     build:
       context: ./database
@@ -19,14 +17,12 @@ services:
       - db_data:/var/lib/mysql
       - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -u root || exit 1"]
+      test: [ "CMD-SHELL", "mysqladmin ping -u root || exit 1" ]
       interval: 5s
       timeout: 5s
       retries: 10
 
-  # -------------------------------------------------------------------
   # Backend API Service: Node.js Express Container
-  # -------------------------------------------------------------------
   backend:
     build:
       context: ./backend
@@ -47,9 +43,7 @@ services:
       database:
         condition: service_healthy
 
-  # -------------------------------------------------------------------
   # Frontend Web Service: React SPA + Nginx Container
-  # -------------------------------------------------------------------
   frontend:
     build:
       context: ./frontend
