@@ -1,32 +1,27 @@
 services:
-  # Database Service: MySQL 8.0 Container
   database:
-    build:
-      context: ./database
-      dockerfile: Dockerfile
+    build: ./database
+    image: michaelandreastj/spendwise-db:latest
     container_name: spendwise-db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: spendwise
-      MYSQL_USER: spendwise_user
-      MYSQL_PASSWORD: spendwise_pass
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "3306:3306"
+      - "3308:3306"
     volumes:
       - db_data:/var/lib/mysql
-      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql
     healthcheck:
-      test: [ "CMD-SHELL", "mysqladmin ping -u root || exit 1" ]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 10
 
-  # Backend API Service: Node.js Express Container
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    build: ./backend
+    image: michaelandreastj/spendwise-backend:latest
     container_name: spendwise-backend
     restart: always
     ports:
@@ -36,18 +31,16 @@ services:
       PORT: 5000
       DB_HOST: database
       DB_PORT: 3306
-      DB_USER: root
-      DB_PASSWORD: rootpassword
-      DB_NAME: spendwise
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
     depends_on:
       database:
         condition: service_healthy
 
-  # Frontend Web Service: React SPA + Nginx Container
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    build: ./frontend
+    image: michaelandreastj/spendwise-frontend:latest
     container_name: spendwise-frontend
     restart: always
     ports:
@@ -55,6 +48,5 @@ services:
     depends_on:
       - backend
 
-# Persistent Volumes
 volumes:
   db_data:
