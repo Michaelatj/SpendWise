@@ -7,6 +7,10 @@
   "scripts": {
     "start": "npm --prefix backend start",
     "dev": "npm --prefix backend run dev",
+    "lint:backend": "npm --prefix backend run lint",
+    "lint:frontend": "npm --prefix frontend run lint",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "build:frontend": "npm --prefix frontend run build",
     "db:setup": "npm --prefix backend run db:setup",
     "db:seed": "npm --prefix backend run db:seed",
     "report:pdf": "node scripts/update-report-pdf.js"

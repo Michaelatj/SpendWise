@@ -881,6 +881,13 @@ The following tools are used or planned for the development of SpendWise.
 * GitHub Issues.
 * GitHub Pull Requests.
 
+## CI/CD & Code Quality
+
+* GitHub Actions (Automated CI/CD Workflows).
+* ESLint 9 (Static code analysis and linting for Frontend & Backend).
+* Docker Buildx & GitHub Container Registry (GHCR) for container image builds and delivery.
+* Detailed guide: [CI_CD_GUIDE.md](CI_CD_GUIDE.md).
+
 ## API & Testing
 
 * Postman or another API testing tool.
@@ -909,6 +916,7 @@ The project will be considered successfully completed when:
 * [ ] Application can run using Docker Compose.
 * [ ] Database uses persistent storage.
 * [ ] Application passes functional and integration testing.
+* [x] Automated CI/CD pipeline runs linting and build checks on pull requests and pushes.
 * [ ] GitHub repository contains the source code and documentation.
 * [ ] Required video documentation is completed.
 * [ ] Final PDF report is completed and submitted before the deadline.

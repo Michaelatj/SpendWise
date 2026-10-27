@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
+    "lint": "eslint .",
     "db:setup": "node src/scripts/setup-db.js",
     "db:seed": "node src/scripts/seed-db.js"
   },
@@ -18,6 +19,9 @@
     "spendwise": "file:.."
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "globals": "^17.13.0",
     "nodemon": "^3.1.0"
   }
 }
