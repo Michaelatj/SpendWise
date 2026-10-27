@@ -1,726 +1,229 @@
-# 💰 SpendWise — Expense & Budget Tracker
+# SpendWise - Expense & Budget Tracker
 
-## 1. Project Overview
+SpendWise adalah aplikasi web pencatat pengeluaran dan anggaran pribadi yang berjalan sepenuhnya di dalam container Docker. Proyek ini dibuat untuk **Tugas Kelompok 1 (MID) - Pengembangan Aplikasi yang Berjalan pada Container**.
 
-**SpendWise** is a web-based personal expense and budget management application designed to help users record, organize, and understand their daily spending.
+Seluruh aplikasi terdiri dari tiga container (frontend, backend, database) yang dijalankan bersama dengan satu perintah `docker compose up`.
 
-Instead of simply recording transactions, SpendWise provides users with a centralized dashboard to monitor their expenses, manage spending categories, set monthly budgets, and understand their spending distribution.
+## Daftar Isi
 
-The application will be developed as a **containerized web application** using Docker and Docker Compose, with **MySQL/MariaDB** as the database.
+1. [Latar Belakang](#latar-belakang)
+2. [Fitur](#fitur)
+3. [Arsitektur Container](#arsitektur-container)
+4. [Teknologi](#teknologi)
+5. [Struktur Proyek](#struktur-proyek)
+6. [Cara Menjalankan](#cara-menjalankan)
+7. [Konfigurasi Environment](#konfigurasi-environment)
+8. [Database](#database)
+9. [Endpoint API](#endpoint-api)
+10. [Pembagian Tugas](#pembagian-tugas)
+11. [Tautan](#tautan)
 
-### Main Goal
+## Latar Belakang
 
-The main goal of SpendWise is to provide a simple and structured way for users to:
+Banyak orang melakukan pembelian kecil setiap hari tanpa tahu ke mana uangnya pergi. Mencatat lewat catatan di ponsel atau spreadsheet cepat merepotkan ketika jumlah transaksi bertambah, dan hasilnya sulit dibaca sebagai gambaran pengeluaran secara keseluruhan.
 
-* Record their daily expenses.
-* Organize expenses into categories.
-* Set and monitor monthly budgets.
-* View their spending history.
-* Understand how their money is distributed across different categories.
-* Run the complete application through a containerized environment.
+SpendWise menggabungkan pencatatan pengeluaran, pengelolaan kategori, dan penetapan anggaran per kategori dalam satu aplikasi web sederhana. Versi pertama dibuat untuk satu pengguna (tanpa login), sehingga fokusnya ada pada fungsi inti dan pada penerapan container yang stabil.
 
----
+## Fitur
 
-# 2. Problem Statement
+| Menu | Fungsi |
+|---|---|
+| Dashboard | Menampilkan total pengeluaran, total anggaran, sisa anggaran, dan lima transaksi terbaru |
+| Expenses | CRUD pengeluaran: deskripsi, nominal, kategori, metode pembayaran, tanggal |
+| Categories | CRUD kategori pengeluaran |
+| Budgets | CRUD anggaran, satu anggaran untuk setiap kategori |
 
-People often make many small purchases throughout the day but may not have a clear overview of where their money is going.
+Data disimpan di database MySQL, bukan di memori, sehingga tetap ada setelah container dihentikan dan dijalankan lagi.
 
-Traditional expense recording methods such as notes or spreadsheets can become inconvenient when the number of transactions increases. Users may record their expenses but still have difficulty understanding their overall spending patterns.
-
-Therefore, SpendWise aims to combine **expense recording, budget management, and spending visualization** into a single web application.
-
----
-
-# 3. Target Users
-
-SpendWise is primarily designed for individuals who want to manage their personal spending.
-
-Potential users include:
-
-* University students.
-* Young professionals.
-* Individuals who want to monitor their monthly expenses.
-* People who want a simple alternative to manually tracking expenses through spreadsheets.
-
-The first version of SpendWise uses a **single-user model**, meaning the application focuses on managing one user's personal financial data without requiring an account or authentication system.
-
----
-
-# 4. Core Features
-
-## 4.1 Expense Management
-
-Users can manage their expense records through CRUD operations.
-
-### Create
-
-Users can add a new expense containing:
-
-* Description
-* Amount
-* Category
-* Payment method
-* Date
-
-### Read
-
-Users can view their recorded expenses in a structured table.
-
-### Update
-
-Users can modify existing expense information, such as correcting an incorrect amount, category, description, or payment method.
-
-### Delete
-
-Users can delete an expense record when it was entered incorrectly or is no longer needed.
-
----
-
-## 4.2 Category Management
-
-Users can organize their expenses into categories.
-
-Example categories include:
-
-* Food
-* Transportation
-* Education
-* Entertainment
-* Shopping
-* Bills
-* Health
-* Other
-
-Users can:
-
-* Create categories.
-* View categories.
-* Edit categories.
-* Delete categories.
-
----
-
-## 4.3 Monthly Budget
-
-Users can define a monthly spending budget.
-
-Example:
+## Arsitektur Container
 
 ```text
-Monthly Budget
-Rp3.000.000
+Browser
+   |
+   |  http://localhost  (port 80)
+   v
++-----------------------------+
+| spendwise-frontend          |
+| Nginx + hasil build React   |
+| melayani halaman statis,    |
+| meneruskan /api ke backend  |
++--------------+--------------+
+               |  http://backend:5000/api
+               v
++-----------------------------+
+| spendwise-backend           |
+| Node.js 20 + Express        |
++--------------+--------------+
+               |  database:3306 (SQL)
+               v
++-----------------------------+
+| spendwise-db                |
+| MySQL 8.0                   |
+| volume: db_data             |
++-----------------------------+
 
-Total Spent
-Rp1.850.000
-
-Remaining
-Rp1.150.000
+Ketiganya berada di satu network bawaan Compose: spendwise_default
 ```
 
-The system calculates the amount spent and remaining budget based on recorded expenses.
+Browser hanya berbicara dengan frontend. Frontend tidak pernah terhubung langsung ke database. Semua permintaan ke `/api` diteruskan oleh Nginx ke backend, dan hanya backend yang mengakses database.
 
----
+### Container, image, dan port
 
-## 4.4 Dashboard
+| Container | Image (Docker Hub) | Port host:container | Fungsi |
+|---|---|---|---|
+| `spendwise-frontend` | `michaelandreastj/spendwise-frontend` | `80:80` | Antarmuka web dan reverse proxy `/api` |
+| `spendwise-backend` | `michaelandreastj/spendwise-backend` | `5000:5000` | REST API |
+| `spendwise-db` | `michaelandreastj/spendwise-db` | `3308:3306` | Database MySQL |
 
-The dashboard provides an overview of the user's financial activity.
+Catatan port database: di dalam container MySQL memakai port 3306, tetapi di komputer host dipetakan ke **3308** karena port 3306 sering sudah dipakai MySQL lokal atau XAMPP. Antar-container tetap memakai `database:3306` lewat network Docker, jadi pemetaan ini tidak memengaruhi backend. Port 3308 dan 5000 dibuka ke host hanya untuk keperluan pengujian (MySQL client dan Postman).
 
-The dashboard will display:
+## Teknologi
 
-* Monthly budget.
-* Total spending.
-* Remaining budget.
-* Number of transactions.
-* Spending by category.
-* Recent transactions.
+| Bagian | Teknologi |
+|---|---|
+| Frontend | React 18, Vite, React Router, Tailwind CSS, Axios, Framer Motion, Lucide React |
+| Web server | Nginx (Alpine) |
+| Backend | Node.js 20 (Alpine), Express.js, mysql2, cors, dotenv |
+| Database | MySQL 8.0 |
+| Container | Docker, Docker Compose |
+| Kontrol versi | Git, GitHub |
 
----
-
-## 4.5 Spending Visualization
-
-SpendWise will provide simple visualizations to help users understand their spending distribution.
-
-Examples:
-
-* Spending by category.
-* Spending over time.
-* Monthly spending summary.
-
-The visualization is intended to make expense data easier to understand than viewing raw transaction records.
-
----
-
-# 5. Optional Features
-
-These features will only be implemented if the core features are completed early.
-
-### Spending Alert
-
-The system may display an alert when spending approaches or exceeds the monthly budget.
-
-Example:
+## Struktur Proyek
 
 ```text
-⚠️ You have used 85% of your monthly budget.
+SpendWise/
+├── docker-compose.yml
+├── .env.example
+├── database/
+│   ├── Dockerfile
+│   └── init.sql
+├── backend/
+│   ├── Dockerfile
+│   └── src/
+│       ├── app.js
+│       ├── server.js
+│       ├── config/
+│       ├── controllers/
+│       ├── middlewares/
+│       └── routes/
+└── frontend/
+    ├── Dockerfile
+    ├── nginx.conf
+    └── src/
+        ├── api/
+        ├── components/
+        └── pages/
 ```
 
-### Spending Insight
+## Cara Menjalankan
 
-The application may provide simple descriptive insights based on existing expense data.
+### Prasyarat
 
-Example:
+- Docker Desktop (atau Docker Engine dengan Compose v2) yang sudah berjalan
+- Port 80, 5000, dan 3308 di komputer tidak sedang dipakai aplikasi lain. Jika Apache XAMPP aktif, matikan dulu karena memakai port 80.
 
-```text
-Your highest spending category this month is Food.
+### Langkah
+
+1. Clone repositori:
+
+   ```bash
+   git clone https://github.com/Michaelatj/SpendWise.git
+   cd SpendWise
+   ```
+
+2. Salin file environment lalu isi nilainya:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Di Windows PowerShell gunakan `Copy-Item .env.example .env`.
+
+3. Bangun dan jalankan semua container:
+
+   ```bash
+   docker compose up --build
+   ```
+
+4. Setelah log menunjukkan backend berjalan, buka `http://localhost`.
+
+5. Cek koneksi database lewat `http://localhost/api/health`.
+
+### Menjalankan dari image Docker Hub (tanpa build)
+
+```bash
+docker compose pull
+docker compose up -d --no-build
 ```
 
-> These features are optional and will not block completion of the core application.
+### Perintah yang berguna
 
----
+| Perintah | Fungsi |
+|---|---|
+| `docker compose ps` | Melihat status container dan port |
+| `docker compose logs -f backend` | Melihat log backend |
+| `docker compose down` | Menghentikan container, data tetap tersimpan |
+| `docker compose down -v` | Menghentikan container dan **menghapus data** (volume) |
 
-# 6. Application Scope
+## Konfigurasi Environment
 
-The first version of SpendWise focuses on **single-user personal expense management**.
+Compose membaca file `.env` di folder yang sama dengan `docker-compose.yml`. File `.env` tidak boleh di-commit; yang di-commit hanya `.env.example`.
 
-### Included
+| Variabel | Fungsi |
+|---|---|
+| `DB_ROOT_PASSWORD` | Password root MySQL |
+| `DB_NAME` | Nama database (`spendwise`) |
+| `DB_USER` | User aplikasi (`spendwise_user`). Jangan diisi `root` |
+| `DB_PASSWORD` | Password untuk user aplikasi |
 
-* Expense CRUD.
-* Category CRUD.
-* Monthly budget.
-* Dashboard.
-* Spending visualization.
-* MySQL/MariaDB database.
-* Docker containerization.
-* Basic validation.
-* Testing.
-
-### Not included in the first version
-
-* User authentication.
-* Multiple user accounts.
-* Online banking integration.
-* Payment gateway.
-* Real financial transactions.
-* Investment management.
-* AI chatbot.
-* Machine learning prediction.
-* Mobile application.
-* Advanced financial planning.
-
-The scope is intentionally limited so the team can focus on delivering a stable and fully containerized application within the project deadline.
-
----
-
-# 7. System Architecture
-
-The application will use a simple client-server architecture.
-
-```text
-                    SpendWise
-                       │
-             ┌─────────┴─────────┐
-             │                   │
-             ▼                   ▼
-        Frontend             Backend API
-             │                   │
-             │                Node.js
-             │                   │
-             └────── HTTP ───────┘
-                                 │
-                                 ▼
-                           MySQL/MariaDB
-```
-
-The frontend communicates with the backend through HTTP requests.
-
-The backend is responsible for processing requests and communicating with the database.
-
-The frontend does **not** connect directly to the database.
-
----
-
-# 8. Technology Stack
-
-## Frontend
-
-Planned technologies:
-
-* HTML
-* CSS
-* JavaScript
-
-The frontend is responsible for:
-
-* User interface.
-* Forms.
-* Expense tables.
-* Dashboard.
-* Charts.
-* Communication with the backend API.
-
----
-
-## Backend
-
-Planned technologies:
-
-* Node.js
-* Express.js
-
-The backend is responsible for:
-
-* REST API.
-* Business logic.
-* Input validation.
-* CRUD operations.
-* Communication with MySQL/MariaDB.
-* Error handling.
-
----
+Backend menerima kredensial ini sebagai environment variable dari Compose, dengan `DB_HOST=database` (nama service, bukan `localhost`).
 
 ## Database
 
-Planned technology:
+Container database memakai image resmi `mysql:8.0`. `database/Dockerfile` hanya menyalin `init.sql` ke `/docker-entrypoint-initdb.d/`. Image resmi menjalankan isi folder itu **sekali saja**, yaitu saat volume `db_data` masih kosong. Pada saat itu juga database dan user dibuat dari variabel `MYSQL_*` di Compose.
 
-* MySQL/MariaDB
+Konsekuensinya: jika `init.sql` diubah, perubahan baru berlaku setelah `docker compose down -v` (volume dihapus) lalu `docker compose up --build`.
 
-The database is responsible for persistent storage of:
+### Skema (ERD)
 
-* Expenses.
-* Categories.
-* Monthly budgets.
+```mermaid
+erDiagram
+    categories ||--o{ expenses : "memiliki"
+    categories ||--o| budgets : "dibatasi oleh"
 
-The application uses a single-user database design, so a separate users table is not required for the first version.
-
----
-
-## Containerization
-
-Planned technologies:
-
-* Docker
-* Docker Compose
-
-Docker will be used to package and run the application consistently across development environments.
-
-Docker Compose will manage the application and database services.
-
----
-
-## Version Control & Project Management
-
-The project uses:
-
-* Git
-* GitHub
-* GitHub Projects
-* GitHub Issues
-* GitHub Pull Requests
-
-GitHub will be used for:
-
-* Source code management.
-* Issue tracking.
-* Task management.
-* Pull requests.
-* Collaboration.
-* Development progress tracking.
-
----
-
-# 9. Database Design
-
-The current database uses three main entities:
-
-```text
-Categories
-    │
-    │ 1 : N
-    ▼
-Expenses
-
-
-Budgets
+    categories {
+        int id PK
+        varchar name UK
+    }
+    expenses {
+        int id PK
+        int category_id FK
+        varchar description
+        decimal amount
+        varchar payment_method
+        date expense_date
+    }
+    budgets {
+        int id PK
+        int category_id FK
+        decimal amount
+    }
 ```
 
-Because SpendWise is currently designed as a **single-user application**, there is no `Users` table or `user_id` relationship.
+Satu kategori dapat memiliki banyak pengeluaran, dan paling banyak satu anggaran. Karena aplikasi ini untuk satu pengguna, tidak ada tabel `users`.
 
-## Categories
+| Tabel | Kolom penting | Aturan |
+|---|---|---|
+| `categories` | `id`, `name` | `name` unik |
+| `expenses` | `id`, `category_id`, `description`, `amount`, `payment_method`, `expense_date` | `amount` bertipe `DECIMAL(12,2)` dan harus lebih dari 0; index pada `category_id` dan `expense_date` |
+| `budgets` | `id`, `category_id`, `amount` | `category_id` unik (satu anggaran per kategori); `amount` harus lebih dari 0 |
 
-| Field | Description                |
-| ----- | -------------------------- |
-| id    | Unique category identifier |
-| name  | Category name              |
+Kedua foreign key memakai `ON DELETE RESTRICT`: kategori yang masih dipakai pengeluaran atau anggaran tidak bisa dihapus. `init.sql` juga mengisi 8 kategori, 3 anggaran, dan 8 pengeluaran contoh.
 
-Categories are used to organize expense records.
-
-One category can be associated with multiple expenses.
-
----
-
-## Expenses
-
-| Field          | Description               |
-| -------------- | ------------------------- |
-| id             | Unique expense identifier |
-| category_id    | Related category          |
-| description    | Expense description       |
-| amount         | Expense amount            |
-| payment_method | Payment method used       |
-| expense_date   | Date of the expense       |
-
-Each expense belongs to a category.
-
----
-
-## Budgets
-
-| Field  | Description              |
-| ------ | ------------------------ |
-| id     | Unique budget identifier |
-| month  | Budget month             |
-| year   | Budget year              |
-| amount | Monthly budget amount    |
-
-The budget table stores the spending limit for a particular month and year.
-
----
-
-## Database Relationship
-
-```text
-┌──────────────┐
-│  Categories  │
-├──────────────┤
-│ id           │
-│ name         │
-└──────┬───────┘
-       │
-       │ 1 : N
-       │
-       ▼
-┌──────────────┐
-│   Expenses   │
-├──────────────┤
-│ id           │
-│ category_id  │
-│ description  │
-│ amount       │
-│ payment_method│
-│ expense_date │
-└──────────────┘
-
-
-┌──────────────┐
-│   Budgets    │
-├──────────────┤
-│ id           │
-│ month        │
-│ year         │
-│ amount       │
-└──────────────┘
-```
-
-The database schema is implemented using SQL and initialized through the Node.js database setup scripts.
-
-> The database structure may be adjusted during development if technical requirements change.
-
----
-
-# 10. CRUD Requirements
-
-The application must demonstrate complete CRUD functionality.
-
-## Expense
-
-```text
-CREATE → Add expense
-READ   → View expenses
-UPDATE → Edit expense
-DELETE → Delete expense
-```
-
-## Category
-
-```text
-CREATE → Add category
-READ   → View categories
-UPDATE → Edit category
-DELETE → Delete category
-```
-
-## Budget
-
-Budget management will support creating and updating the monthly budget.
-
-```text
-CREATE → Set monthly budget
-READ   → View monthly budget
-UPDATE → Change monthly budget
-```
-
-The CRUD operations must interact with the MySQL/MariaDB database rather than temporary in-memory data.
-
----
-
-# 11. Docker & Containerization Plan
-
-The application will be containerized using Docker.
-
-The planned services are:
-
-```text
-app
-└── SpendWise application
-
-db
-└── MySQL/MariaDB database
-```
-
-Docker Compose will be used to run the application and database together.
-
-Example:
+### Masuk ke database
 
 ```bash
-docker compose up --build
-```
-
-The project must support:
-
-* Application container.
-* MySQL/MariaDB container.
-* Docker network.
-* Environment variables.
-* Persistent database volume.
-* Reproducible application setup.
-
-The database must remain persistent when the containers are stopped and recreated.
-
----
-
-# 12. Environment Configuration
-
-Environment-specific configuration should not be stored directly in the source code.
-
-A local `.env` file will be used during development.
-
-Example:
-
-```env
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=
-DB_NAME=spendwise
-```
-
-The actual `.env` file must **not** be committed to GitHub.
-
-Instead, the project provides:
-
-```text
-.env.example
-```
-
-as a template for team members.
-
----
-
-# 13. Testing Plan
-
-Testing will be performed throughout development rather than only at the end.
-
-## Functional Testing
-
-Verify that application features work as expected.
-
-Examples:
-
-* Add expense.
-* View expense.
-* Edit expense.
-* Delete expense.
-* Create category.
-* Update category.
-* Delete category.
-* Set budget.
-* Update budget.
-
-## API Testing
-
-Verify backend endpoints and responses.
-
-Examples:
-
-* Request status codes.
-* Response data.
-* Invalid input handling.
-* Missing data handling.
-* CRUD operations.
-
-## Database Testing
-
-Verify that:
-
-* Data is correctly inserted.
-* Data can be retrieved.
-* Category relationships work correctly.
-* Updates are persisted.
-* Deleted records are removed correctly.
-* Budget data is stored correctly.
-
-## Integration Testing
-
-Verify:
-
-```text
-Frontend
-   ↓
-Backend API
-   ↓
-MySQL/MariaDB
-```
-
-works correctly as one system.
-
-## Container Testing
-
-Verify that the complete application can be started using:
-
-```bash
-docker compose up --build
-```
-
-and that the application continues to work after container recreation.
-
-## Persistence Testing
-
-Verify that database data remains available after containers are stopped and recreated.
-
----
-
-# 14. Team Responsibilities
-
-Responsibilities are initially divided as follows and may be adjusted during development.
-
-| Member      | Main Responsibility |
-| ----------- | ------------------- |
-| **Michael** | Database & Docker   |
-| **Diwa**    | Frontend            |
-| **Enjel**   | Backend & Testing   |
-
-### Michael — Database & Docker
-
-Responsibilities:
-
-* Database design.
-* ERD.
-* SQL schema.
-* MySQL/MariaDB setup.
-* Database connection setup.
-* Database testing.
-* Docker configuration.
-* Docker Compose.
-* Database container.
-* Network configuration.
-* Persistent volume.
-* Container testing support.
-
-### Diwa — Frontend
-
-Responsibilities:
-
-* UI design.
-* Frontend structure.
-* Dashboard.
-* Expense management interface.
-* Category management interface.
-* Budget interface.
-* Charts/visualization.
-* Frontend-backend integration.
-
-### Enjel — Backend & Testing
-
-Responsibilities:
-
-* Node.js/Express setup.
-* API development.
-* CRUD endpoints.
-* Business logic.
-* Validation.
-* Error handling.
-* API testing.
-* Integration testing.
-* Final system testing.
-
-> Responsibilities are not permanently fixed. Team members may assist one another when a task becomes blocked or workload becomes unbalanced.
-
----
-
-# 15. Development Workflow
-
-The project will use GitHub for collaborative development.
-
-## Branching Strategy
-
-`main` is the stable branch.
-
-Feature branches are created for specific tasks.
-
-Example:
-
-```text
-main
-│
-├── feature/database-schema
-├── feature/docker
-├── feature/frontend
-├── feature/expense-api
-└── feature/dashboard
-```
-
-Branches should represent **work or features**, not individual team members.
-
-### Pull Request Workflow
-
-```text
-Create Issue
-      ↓
-Create feature branch
-      ↓
-Implement feature
-      ↓
-Commit changes
-      ↓
-Push branch
-      ↓
-Create Pull Request
-      ↓
-Code Review / Testing
-      ↓
-Merge into main
-```
-
-The `main` branch should contain stable code.
-
----
-
-# 16. Project Management Workflow
-
-GitHub Projects will be used to track development progress.
-
-## Status
-
-```text
-Backlog
-   ↓
-Todo
-   ↓
-In Progress
-   ↓
-Review
-   ↓
-Done
+docker exec -it spendwise-db mysql -u spendwise_user -p spendwise
 ```
 
 ## Priority
@@ -893,19 +396,27 @@ The following tools are used or planned for the development of SpendWise.
 * Postman or another API testing tool.
 * Browser developer tools.
 
-## Design & Documentation
+## Endpoint API
 
-* draw.io / diagrams.net for ERD and system diagrams.
-* Microsoft Word or Google Docs for the project report.
-* Screen recording software for the required project video.
+Semua endpoint berada di bawah `/api`.
 
-> Tools may be adjusted during development if the team identifies a more suitable alternative.
+| Resource | Method dan path |
+|---|---|
+| Health | `GET /api/health` |
+| Dashboard | `GET /api/dashboard` |
+| Expenses | `GET /api/expenses`, `GET /api/expenses/:id`, `POST /api/expenses`, `PUT /api/expenses/:id`, `DELETE /api/expenses/:id` |
+| Categories | `GET /api/categories`, `GET /api/categories/:id`, `POST /api/categories`, `PUT /api/categories/:id`, `DELETE /api/categories/:id` |
+| Budgets | `GET /api/budgets`, `POST /api/budgets`, `PUT /api/budgets/:id`, `DELETE /api/budgets/:id` |
 
----
+## Pembagian Tugas
 
-# 21. Success Criteria
+| Anggota | Tanggung jawab |
+|---|---|
+| Michael Andreas Tjendra | Database dan Docker: desain skema, `init.sql`, Docker Compose, container database, network, volume |
+| Diky Diwa Suwanto | Frontend: antarmuka, dashboard, halaman Expenses, Categories, dan Budgets |
+| Enjel Boyzest Saragih | Backend dan pengujian: REST API Express, validasi, penanganan error, pengujian API dan integrasi |
 
-The project will be considered successfully completed when:
+## Tautan
 
 * [ ] The web application can be accessed and used.
 * [ ] Expense CRUD works correctly.
