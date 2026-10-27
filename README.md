@@ -226,7 +226,175 @@ Kedua foreign key memakai `ON DELETE RESTRICT`: kategori yang masih dipakai peng
 docker exec -it spendwise-db mysql -u spendwise_user -p spendwise
 ```
 
-Dari komputer host (misalnya MySQL Workbench): host `127.0.0.1`, port `3308`, user dan password sesuai `.env`.
+## Priority
+
+```text
+Urgent
+High
+Medium
+Low
+```
+
+## Main Work Areas
+
+```text
+Frontend
+Backend
+Database
+Docker
+Testing
+Documentation
+```
+
+Each task should contain:
+
+* Assignee.
+* Priority.
+* Status.
+* Milestone.
+* Description.
+* Acceptance criteria.
+
+---
+
+# 17. Development Roadmap
+
+## Phase 1 — Planning & Foundation
+
+**September 28–30, 2026**
+
+* Finalize requirements.
+* Finalize technology stack.
+* Design system architecture.
+* Design database ERD.
+* Design UI wireframe.
+* Initialize repository and development environment.
+* Set up database schema.
+
+---
+
+## Phase 2 — Core Development
+
+**October 1–4, 2026**
+
+* Implement database.
+* Implement backend API.
+* Implement frontend.
+* Implement Expense CRUD.
+* Implement Category CRUD.
+* Implement Budget functionality.
+* Implement dashboard.
+* Implement spending visualization.
+
+---
+
+## Phase 3 — Integration & Containerization
+
+**October 5–6, 2026**
+
+* Integrate frontend and backend.
+* Configure Docker.
+* Configure Docker Compose.
+* Configure MySQL/MariaDB container.
+* Configure network.
+* Configure persistent volume.
+* Test complete application inside containers.
+
+---
+
+## Phase 4 — Testing & Finalization
+
+**October 7–9, 2026**
+
+* Functional testing.
+* CRUD testing.
+* Database testing.
+* API testing.
+* Integration testing.
+* Container testing.
+* Bug fixing.
+* README documentation.
+* Final report.
+* Video documentation.
+* Final review.
+
+---
+
+## Phase 5 — Submission
+
+**October 10, 2026**
+
+Final submission before:
+
+**23:59 WIB**
+
+---
+
+# 18. Definition of Done
+
+A feature is considered **Done** only when:
+
+* [ ] Implementation is complete.
+* [ ] Feature works as expected.
+* [ ] Database interaction works correctly.
+* [ ] Related API works correctly.
+* [ ] Frontend integration works when applicable.
+* [ ] Basic validation is implemented.
+* [ ] Feature has been tested.
+* [ ] Code has been reviewed.
+* [ ] Changes are merged into `main`.
+
+---
+
+# 19. Project Deliverables
+
+The final project will contain:
+
+1. Working web application.
+2. GitHub repository.
+3. Docker configuration.
+4. MySQL/MariaDB database.
+5. GitHub Project development board.
+6. README documentation.
+7. PDF project report.
+8. Video documentation of the complete container implementation.
+
+---
+
+# 20. Development Tools
+
+The following tools are used or planned for the development of SpendWise.
+
+## Development
+
+* Visual Studio Code.
+* Node.js.
+* npm.
+* HTML/CSS/JavaScript.
+* Express.js.
+* MySQL/MariaDB.
+* MySQL Workbench.
+* XAMPP/phpMyAdmin for local database administration when applicable.
+
+## Version Control & Collaboration
+
+* Git.
+* GitHub.
+* GitHub Projects.
+* GitHub Issues.
+* GitHub Pull Requests.
+
+## CI/CD & Code Quality
+
+* GitHub Actions (Automated CI/CD Workflows).
+* ESLint 9 (Static code analysis and linting for Frontend & Backend).
+* Docker Buildx & GitHub Container Registry (GHCR) for container image builds and delivery.
+* Detailed guide: [CI_CD_GUIDE.md](CI_CD_GUIDE.md).
+
+## API & Testing
+
+* Postman or another API testing tool.
+* Browser developer tools.
 
 ## Endpoint API
 
@@ -250,10 +418,16 @@ Semua endpoint berada di bawah `/api`.
 
 ## Tautan
 
-| Item | Tautan |
-|---|---|
-| Repositori GitHub | https://github.com/Michaelatj/SpendWise |
-| Docker Hub - database | https://hub.docker.com/r/michaelandreastj/spendwise-db |
-| Docker Hub - backend | https://hub.docker.com/r/michaelandreastj/spendwise-backend |
-| Docker Hub - frontend | https://hub.docker.com/r/michaelandreastj/spendwise-frontend |
-| Video dokumentasi | [ISI TAUTAN VIDEO] |
+* [ ] The web application can be accessed and used.
+* [ ] Expense CRUD works correctly.
+* [ ] Category CRUD works correctly.
+* [ ] Budget management works.
+* [ ] Data is stored in MySQL/MariaDB.
+* [ ] Frontend communicates with the backend.
+* [ ] Application can run using Docker Compose.
+* [ ] Database uses persistent storage.
+* [ ] Application passes functional and integration testing.
+* [x] Automated CI/CD pipeline runs linting and build checks on pull requests and pushes.
+* [ ] GitHub repository contains the source code and documentation.
+* [ ] Required video documentation is completed.
+* [ ] Final PDF report is completed and submitted before the deadline.
