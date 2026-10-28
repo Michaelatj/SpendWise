@@ -1,27 +1,31 @@
+
 services:
   database:
-    build: ./database
-    image: michaelandreastj/spendwise-db:latest
+    image: michaelandreastj/spendwise-db:${IMAGE_TAG:-latest}
     container_name: spendwise-db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD must be set}
+      MYSQL_DATABASE: ${DB_NAME:?DB_NAME must be set}
+      MYSQL_USER: ${DB_USER:?DB_USER must be set}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set}
     ports:
       - "3308:3306"
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD || exit 1"
+        ]
       interval: 5s
       timeout: 5s
       retries: 10
+      start_period: 10s
 
   backend:
-    build: ./backend
-    image: michaelandreastj/spendwise-backend:latest
+    image: michaelandreastj/spendwise-backend:${IMAGE_TAG:-latest}
     container_name: spendwise-backend
     restart: always
     ports:
@@ -31,16 +35,15 @@ services:
       PORT: 5000
       DB_HOST: database
       DB_PORT: 3306
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER:?DB_USER must be set}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set}
+      DB_NAME: ${DB_NAME:?DB_NAME must be set}
     depends_on:
       database:
         condition: service_healthy
 
   frontend:
-    build: ./frontend
-    image: michaelandreastj/spendwise-frontend:latest
+    image: michaelandreastj/spendwise-frontend:${IMAGE_TAG:-latest}
     container_name: spendwise-frontend
     restart: always
     ports:
