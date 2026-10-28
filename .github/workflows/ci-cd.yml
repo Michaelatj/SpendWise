@@ -1,3 +1,4 @@
+
 name: SpendWise CI/CD Pipeline
 
 on:
@@ -6,121 +7,145 @@ on:
       - main
       - master
       - 'feature/**'
+
   pull_request:
     branches:
       - main
       - master
+
   workflow_dispatch:
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
-  # =============================================================
-  # STAGE 1: Code Linting & Static Analysis (Quality Gate)
-  # =============================================================
+  # ==========================================
+  # 1. LINT BACKEND & FRONTEND
+  # ==========================================
   lint:
-    name: Lint (${{ matrix.name }})
+    name: Lint ${{ matrix.name }}
     runs-on: ubuntu-latest
+
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         include:
-          - name: backend
-            dir: backend
-          - name: frontend
-            dir: frontend
+          - name: Backend
+            directory: backend
+          - name: Frontend
+            directory: frontend
 
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-          cache-dependency-path: ${{ matrix.dir }}/package-lock.json
+          cache: npm
+          cache-dependency-path: ${{ matrix.directory }}/package-lock.json
 
-      - name: Install Dependencies (${{ matrix.name }})
-        run: npm --prefix ${{ matrix.dir }} ci
+      - name: Install Dependencies
+        working-directory: ${{ matrix.directory }}
+        run: npm ci
 
-      - name: Run ESLint (${{ matrix.name }})
-        run: npm --prefix ${{ matrix.dir }} run lint
+      - name: Run ESLint
+        working-directory: ${{ matrix.directory }}
+        run: npm run lint
 
-  # =============================================================
-  # STAGE 2: Build & Verification
-  # =============================================================
+  # ==========================================
+  # 2. BUILD FRONTEND
+  # ==========================================
   build-frontend:
-    name: Build Frontend (Vite)
+    name: Build Frontend
     runs-on: ubuntu-latest
-    needs: [lint]
+    needs: lint
+
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install Frontend Dependencies
-        run: npm --prefix frontend ci
+      - name: Install Dependencies
+        working-directory: frontend
+        run: npm ci
 
-      - name: Build Frontend Production Bundle
-        run: npm --prefix frontend run build
+      - name: Build Frontend
+        working-directory: frontend
+        run: npm run build
 
-      - name: Upload Build Artifacts
+      - name: Upload Frontend Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
-          path: frontend/dist
-          retention-days: 7
+          path: frontend/dist/
+          if-no-files-found: error
 
+  # ==========================================
+  # 3. VERIFY BACKEND
+  # ==========================================
   verify-backend:
-    name: Verify Backend Code
+    name: Verify Backend Syntax
     runs-on: ubuntu-latest
-    needs: [lint]
+    needs: lint
+
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: backend/package-lock.json
 
-      - name: Install Backend Dependencies
-        run: npm --prefix backend ci
+      - name: Install Dependencies
+        working-directory: backend
+        run: npm ci
 
-      - name: Validate Backend JavaScript Syntax
-        run: find backend/src -name "*.js" -exec node --check {} +
+      - name: Check JavaScript Syntax
+        shell: bash
+        run: |
+          find backend/src -type f -name "*.js" -print0 \
+            | xargs -0 -r -n1 node --check
 
-  # =============================================================
-  # STAGE 3: Docker Build Verification
-  # =============================================================
+  # ==========================================
+  # 4. VERIFY DOCKER BUILDS
+  # ==========================================
   docker-build-check:
-    name: Docker Build Check (${{ matrix.name }})
+    name: Docker Build Check - ${{ matrix.name }}
     runs-on: ubuntu-latest
-    needs: [build-frontend, verify-backend]
+
+    needs:
+      - build-frontend
+      - verify-backend
+
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         include:
-          - name: database
+          - name: Database
             context: ./database
             dockerfile: ./database/Dockerfile
-          - name: backend
+            image: spendwise-db
+
+          - name: Backend
             context: ./backend
             dockerfile: ./backend/Dockerfile
-          - name: frontend
+            image: spendwise-backend
+
+          - name: Frontend
             context: ./frontend
             dockerfile: ./frontend/Dockerfile
+            image: spendwise-frontend
 
     steps:
       - name: Checkout Source Code
@@ -129,24 +154,31 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker Image (${{ matrix.name }})
+      - name: Check Docker Image Build
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
           push: false
-          tags: spendwise-${{ matrix.name }}:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: ${{ matrix.image }}:test
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
 
-  # =============================================================
-  # STAGE 4: Continuous Deployment / Release (Push to GHCR)
-  # =============================================================
+  # ==========================================
+  # 5. PUBLISH TO DOCKER HUB
+  # ==========================================
   deploy:
-    name: Deploy & Publish Container Images
+    name: Publish Images to Docker Hub
     runs-on: ubuntu-latest
-    needs: [docker-build-check]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+
+    needs:
+      - docker-build-check
+
+    if: >-
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' ||
+       github.ref == 'refs/heads/master')
+
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
@@ -154,16 +186,11 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Lowercase Repository Name for GHCR
-        run: |
-          echo "REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-
-      - name: Log in to GitHub Container Registry (GHCR)
+      - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build & Push Database Image
         uses: docker/build-push-action@v6
@@ -172,10 +199,13 @@ jobs:
           file: ./database/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ env.REPO_LOWER }}/database:latest
-            ghcr.io/${{ env.REPO_LOWER }}/database:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+            michaelandreastj/spendwise-db:latest
+            michaelandreastj/spendwise-db:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=database
+          cache-to: type=gha,mode=max,scope=database
 
       - name: Build & Push Backend Image
         uses: docker/build-push-action@v6
@@ -184,10 +214,13 @@ jobs:
           file: ./backend/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ env.REPO_LOWER }}/backend:latest
-            ghcr.io/${{ env.REPO_LOWER }}/backend:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+            michaelandreastj/spendwise-backend:latest
+            michaelandreastj/spendwise-backend:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
 
       - name: Build & Push Frontend Image
         uses: docker/build-push-action@v6
@@ -196,18 +229,23 @@ jobs:
           file: ./frontend/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ env.REPO_LOWER }}/frontend:latest
-            ghcr.io/${{ env.REPO_LOWER }}/frontend:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+            michaelandreastj/spendwise-frontend:latest
+            michaelandreastj/spendwise-frontend:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
 
       - name: Publish Deployment Summary
+        shell: bash
         run: |
-          echo "### 🚀 SpendWise CI/CD Deployment Succeeded!" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Published Docker Images to GitHub Container Registry (GHCR):" >> $GITHUB_STEP_SUMMARY
-          echo "- \`ghcr.io/${{ env.REPO_LOWER }}/database:latest\` (\`${{ github.sha }}\`)" >> $GITHUB_STEP_SUMMARY
-          echo "- \`ghcr.io/${{ env.REPO_LOWER }}/backend:latest\` (\`${{ github.sha }}\`)" >> $GITHUB_STEP_SUMMARY
-          echo "- \`ghcr.io/${{ env.REPO_LOWER }}/frontend:latest\` (\`${{ github.sha }}\`)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Triggered by commit: \`${{ github.sha }}\` on \`${{ github.ref }}\` by @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "### SpendWise CI/CD Published Successfully!" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Registry: Docker Hub" >> "$GITHUB_STEP_SUMMARY"
+          echo "- michaelandreastj/spendwise-db:latest" >> "$GITHUB_STEP_SUMMARY"
+          echo "- michaelandreastj/spendwise-backend:latest" >> "$GITHUB_STEP_SUMMARY"
+          echo "- michaelandreastj/spendwise-frontend:latest" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Commit SHA: ${{ github.sha }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Branch: ${{ github.ref_name }}" >> "$GITHUB_STEP_SUMMARY"
