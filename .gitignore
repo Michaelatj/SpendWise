@@ -1,3 +1,6 @@
 .env
 node_modules/
 /scripts
+report_assets
+build_full_report.py
+Tugas01_231111210.docx
