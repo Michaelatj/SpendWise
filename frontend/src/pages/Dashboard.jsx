@@ -101,7 +101,7 @@ const Dashboard = () => {
     <section className="space-y-6">
       <div>
         <p className="text-sm font-medium uppercase tracking-wide text-emerald-700">
-          SpendWise
+          SpendWise!
         </p>
         <h1 className="mt-1 text-2xl font-bold text-gray-900"> Tampilan Dashboard.</h1>
         <p className="mt-1 text-sm text-gray-500">

@@ -4,3 +4,6 @@ node_modules/
 report_assets
 build_full_report.py
 Tugas01_231111210.docx
+generate_scripts_pdf_and_tex.py
+Script_Presentasi_Video_Docker_dan_CICD.pdf
+script_video_docker_cicd.tex
