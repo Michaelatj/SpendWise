@@ -16,7 +16,8 @@
     "report:pdf": "node scripts/update-report-pdf.js"
   },
   "dependencies": {
-    "mysql2": "^3.14.4"
+    "mysql2": "^3.14.4",
+    "nvm": "^0.0.4"
   },
   "devDependencies": {
     "pdf-lib": "^1.17.1"
